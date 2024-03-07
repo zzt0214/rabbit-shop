@@ -1,5 +1,47 @@
 <script setup lang="ts">
-//
+import { getHomeGuessLikeAPI } from '@/services/home'
+import type { PageParams } from '@/types/global'
+import type { GuessItem } from '@/types/hoem'
+import { onMounted, ref } from 'vue'
+
+onMounted(() => {
+  // 当页面挂载，加载数据
+  getGuessLikeData()
+})
+
+const guessList = ref<GuessItem[]>([])
+const pageParams: Required<PageParams> = {
+  page: 33,
+  pageSize: 10,
+}
+// 退出条件
+const finshed = ref(false)
+const getGuessLikeData = async () => {
+  // 加载数据
+  // 数据校验
+  if (finshed.value === true) {
+    return uni.showToast({ icon: 'none', title: '没有更多数据了！' })
+  }
+  const res = await getHomeGuessLikeAPI(pageParams)
+  guessList.value.push(...res.result.items)
+  if (pageParams.page < res.result.pages) {
+    pageParams.page++
+  } else {
+    finshed.value = true
+  }
+}
+// 定义重置数据函数
+const resetData = () => {
+  guessList.value = []
+  pageParams.page = 1
+  finshed.value = false
+}
+
+// 暴露方法给父组件调用
+defineExpose({
+  resetData,
+  getMore: getGuessLikeData,
+})
 </script>
 
 <template>
@@ -10,23 +52,19 @@
   <view class="guess">
     <navigator
       class="guess-item"
-      v-for="item in 10"
-      :key="item"
-      :url="`/pages/goods/goods?id=4007498`"
+      v-for="item in guessList"
+      :key="item.id"
+      :url="`/pages/goods/goods?id=${item.id}`"
     >
-      <image
-        class="image"
-        mode="aspectFill"
-        src="https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/uploads/goods_big_1.jpg"
-      ></image>
-      <view class="name"> 德国THORE男表 超薄手表男士休闲简约夜光石英防水直径40毫米 </view>
+      <image class="image" mode="aspectFill" :src="item.picture"></image>
+      <view class="name"> {{ item.name }} </view>
       <view class="price">
         <text class="small">¥</text>
-        <text>899.00</text>
+        <text>{{ item.price }}</text>
       </view>
     </navigator>
   </view>
-  <view class="loading-text"> 正在加载... </view>
+  <view class="loading-text"> {{ finshed ? '没有更多数据了！' : '正在加载...' }} </view>
 </template>
 
 <style lang="scss">
