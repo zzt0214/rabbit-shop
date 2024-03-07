@@ -21,15 +21,15 @@ const httpInterceptor = {
             options.header.Authorization = token
         }
     },
-    success(args: any) {
-      // 请求成功后，修改code值为1
-    }, 
-    fail(err: any) {
-      console.log('interceptor-fail',err)
-    }, 
-    complete(res: any) {
-      console.log('interceptor-complete',res)
-    }
+    // success(args: any) {
+    //   // 请求成功后，修改code值为1
+    // }, 
+    // fail(err: any) {
+    //   console.log('interceptor-fail',err)
+    // }, 
+    // complete(res: any) {
+    //   console.log('interceptor-complete',res)
+    // }
 }
 // 拦截 request 请求
 uni.addInterceptor('request', httpInterceptor)
@@ -51,11 +51,11 @@ export const http = <T>(options: UniApp.RequestOptions) =>{
         if(res.statusCode >= 200 && res.statusCode < 300){
           // 请求成功操作
           resolve(res.data as Data<T>)
-        }else if(res.statusCode >= 401){
+        }else if(res.statusCode === 401){
           // token过期
           const userInfo = useMemberStore()
           userInfo.clearProfile()
-          uni.navigateTo({ url: '/pages/login' })
+          uni.navigateTo({ url: '/pages/login/login' })
           reject(res)
         }else {
           // 其他错误
