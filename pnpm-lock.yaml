@@ -57,7 +57,7 @@ dependencies:
     specifier: ^3.2.0
     version: 3.2.0(pinia@2.0.27)
   vue:
-    specifier: ^3.2.47
+    specifier: ^3.3.4
     version: 3.3.4
   vue-i18n:
     specifier: ^9.2.2

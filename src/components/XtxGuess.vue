@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { getHomeGuessLikeAPI } from '@/services/home'
 import type { PageParams } from '@/types/global'
-import type { GuessItem } from '@/types/hoem'
+import type { GuessItem } from '@/types/home'
 import { onMounted, ref } from 'vue'
 
 onMounted(() => {
@@ -11,7 +11,7 @@ onMounted(() => {
 
 const guessList = ref<GuessItem[]>([])
 const pageParams: Required<PageParams> = {
-  page: 33,
+  page: import.meta.env.DEV ? 33 : 1,
   pageSize: 10,
 }
 // 退出条件

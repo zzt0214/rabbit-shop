@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { HotItem } from '@/types/hoem'
+import type { HotItem } from '@/types/home'
 
 //
 defineProps<{
@@ -15,7 +15,7 @@ defineProps<{
         <text class="title-text">{{ item.title }}</text>
         <text class="title-desc">{{ item.alt }}</text>
       </view>
-      <navigator hover-class="none" url="/pages/hot/hot" class="cards">
+      <navigator hover-class="none" :url="`/pages/hot/hot?type=${item.type}`" class="cards">
         <image
           v-for="imgUrl in item.pictures"
           class="image"
