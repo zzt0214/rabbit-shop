@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { getMemberProfileAPI } from '@/services/profile'
-import type { ProfileDetail } from '@/types/member'
+import { getMemberProfileAPI, putMemberProfileAPI } from '@/services/profile'
+import { useMemberStore } from '@/stores'
+import type { Gender, ProfileDetail } from '@/types/member'
 import { onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 
@@ -8,7 +9,8 @@ import { ref } from 'vue'
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
 // 对应响应式式数据
-const profile = ref<ProfileDetail>()
+// 提示：当使用v-model时，未指定初始值({} as ProfileDetail)，会报错
+const profile = ref<ProfileDetail>({} as ProfileDetail)
 // 页面加载
 onLoad(() => {
   getMemberProfileData()
@@ -16,14 +18,101 @@ onLoad(() => {
 // 获取用户信息
 const getMemberProfileData = async () => {
   const res = await getMemberProfileAPI()
-  console.log(res)
+  console.log(memberStore.profile)
   profile.value = res.result
 }
+const memberStore = useMemberStore()
+// 日期组件
 const onChangeDate: UniHelper.DatePickerOnChange = (e) => {
   profile.value!.birthday = e.detail.value
 }
+let fullCLocationCode: [string, string, string] = ['', '', '']
+// 区域
 const onChangeRegion: UniHelper.RegionPickerOnChange = (e) => {
-  profile.value!.fullLocation = e.detail.value.join(',')
+  // 前端显示 ["北京市", "北京市", "东城区"]
+  profile.value!.fullLocation = e.detail.value.join(' ')
+  // 后端请求 ["110000", "110100", "110101"]
+  fullCLocationCode = e.detail.code!
+}
+// 单选框
+const handleGenderChange: UniHelper.RadioGroupOnChange = (e) => {
+  profile.value!.gender = e.detail.value as Gender
+}
+// 上传图片
+const updateAvatar = () => {
+  // uniap上传图片的组件
+  uni.chooseMedia({
+    // 数量为1
+    count: 1,
+    mediaType: ['image'],
+    success: (res) => {
+      console.log(res)
+      // 解构出临时文件
+      const { tempFilePath } = res.tempFiles[0]
+      // 上传文件到服务器
+      uni.uploadFile({
+        url: '/member/profile/avatar',
+        filePath: tempFilePath,
+        name: 'file',
+        success: (res) => {
+          console.log(res)
+          if (res.statusCode === 200) {
+            // 上传成功
+            // 服务器返回的数据，为JSON
+            const { avatar } = JSON.parse(res.data).result
+            console.log(avatar)
+            profile.value!.avatar = avatar
+            // 同步数据到Store TODO 有问题
+            memberStore.profile!.avatar = avatar
+            uni.showToast({ icon: 'success', title: '更新成功' })
+          } else {
+            // 上传失败
+            uni.showToast({ icon: 'error', title: '未知错误' })
+          }
+        },
+        fail: (err) => {
+          console.log(err)
+        },
+      })
+    },
+  })
+}
+// 提交
+const onSubmit = async () => {
+  // 怎么优雅的处理
+  const { nickname, gender, birthday, profession } = profile.value
+  let res
+  if (fullCLocationCode[0] === '') {
+    // 更新数据
+    res = await putMemberProfileAPI({
+      nickname,
+      gender,
+      birthday,
+      profession,
+    })
+  } else {
+    // 更新数据
+    res = await putMemberProfileAPI({
+      nickname,
+      gender,
+      birthday,
+      profession,
+      provinceCode: fullCLocationCode[0],
+      cityCode: fullCLocationCode[1],
+      countyCode: fullCLocationCode[2],
+    })
+  }
+  if (res.code === '1') {
+    // 成功
+    // 怎么保存到Store
+    uni.showToast({ icon: 'success', title: '更新成功' })
+    // 返回上一页
+    setTimeout(() => {
+      uni.navigateBack()
+    }, 400)
+  } else {
+    uni.showToast({ icon: 'error', title: '更新失败' })
+  }
 }
 </script>
 
@@ -36,7 +125,7 @@ const onChangeRegion: UniHelper.RegionPickerOnChange = (e) => {
     </view>
     <!-- 头像 -->
     <view class="avatar">
-      <view class="avatar-content">
+      <view class="avatar-content" @tap="updateAvatar">
         <image class="image" :src="profile?.avatar" mode="aspectFill" />
         <text class="text">点击修改头像</text>
       </view>
@@ -51,11 +140,11 @@ const onChangeRegion: UniHelper.RegionPickerOnChange = (e) => {
         </view>
         <view class="form-item">
           <text class="label">昵称</text>
-          <input class="input" type="text" placeholder="请填写昵称" :value="profile?.nickname" />
+          <input class="input" type="text" placeholder="请填写昵称" v-model="profile!.nickname" />
         </view>
         <view class="form-item">
           <text class="label">性别</text>
-          <radio-group>
+          <radio-group @change="handleGenderChange">
             <label class="radio">
               <radio value="男" color="#27ba9b" :checked="profile?.gender === '男'" />
               男
@@ -94,20 +183,11 @@ const onChangeRegion: UniHelper.RegionPickerOnChange = (e) => {
         </view>
         <view class="form-item">
           <text class="label">职业</text>
-          <input class="input" type="text" placeholder="请填写职业" :value="profile?.profession" />
+          <input class="input" type="text" placeholder="请填写职业" v-model="profile!.profession" />
         </view>
       </view>
       <!-- 提交按钮 -->
-      <button
-        class="form-button"
-        @tap="
-          () => {
-            console.log(profile)
-          }
-        "
-      >
-        保 存
-      </button>
+      <button class="form-button" @tap="onSubmit">保 存</button>
     </view>
   </view>
 </template>

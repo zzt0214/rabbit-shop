@@ -31,3 +31,14 @@ export type ProfileDetail = commonProfile & {
 }
 /** 性别 */
 export type Gender = '女' | '男'
+
+// 指定提交修改个人信息
+export type ProfileRequestBody = Pick<ProfileDetail, 
+|'nickname' 
+| 'gender' 
+| 'birthday' 
+| 'profession'> & {
+  provinceCode?: string
+  cityCode?: string
+  countyCode?: string
+}

@@ -112,6 +112,18 @@
             "navigationBarTitleText": "个人信息",
             "navigationStyle":"custom"
           }
+        },
+        {
+          "path": "address/address",
+          "style": {
+            "navigationBarTitleText": "收获地址"
+          }
+        },
+        {
+          "path": "address-form/address-form",
+          "style": {
+            "navigationBarTitleText": ""
+          }
         }
       ]
     }

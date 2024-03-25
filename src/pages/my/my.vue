@@ -31,11 +31,7 @@ const onScrolltolower = () => {
       <!-- 情况1：已登录 -->
       <view class="overview" v-if="memberInfo.profile">
         <navigator url="/pagesMember/profile/profile" hover-class="none">
-          <image
-            class="avatar"
-            mode="aspectFill"
-            src="https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/uploads/avatar_3.jpg"
-          ></image>
+          <image class="avatar" mode="aspectFill" :srr="memberInfo.profile.avatar"></image>
         </navigator>
         <view class="meta">
           <view class="nickname">
