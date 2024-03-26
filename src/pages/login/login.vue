@@ -18,7 +18,6 @@ const onGetPhoneNumber: UniHelper.ButtonOnGetphonenumber = (ev) => {
 // 模拟用户的登陆请求
 const onGetPhoneNumberSimple = async () => {
   const member = useMemberStore()
-  console.log(member.profile)
   // 如果已经持久化了，就不需要重新登陆
   if (member.profile === undefined) {
     let phone = '17573920211'
@@ -30,7 +29,8 @@ const onGetPhoneNumberSimple = async () => {
   uni.showToast({ icon: 'none', title: '登陆成功' })
   // 跳转 延迟1s
   setTimeout(() => {
-    uni.switchTab({ url: '/pages/my/my' })
+    // uni.switchTab({ url: '/pages/my/my' })
+    uni.navigateBack()
   }, 1000)
 }
 </script>
